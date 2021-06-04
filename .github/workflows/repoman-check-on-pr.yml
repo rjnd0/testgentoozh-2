@@ -75,7 +75,7 @@ jobs:
                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -o ${COMMITS_JSON} ${COMMITS_URL}
           [[ $(file --mime-type ${COMMITS_JSON}) =~ application/json$ ]]
-          <${COMMITS_JSON} jq '.message' && false
+          <${COMMITS_JSON} jq '.message' && false || true
           commits=( $(<${COMMITS_JSON} jq '.[].sha' | cut -d'"' -f2) )
           pcommits=( $(<${COMMITS_JSON} jq '.[].parents[].sha' | cut -d'"' -f2) )
           sha=${pcommits[0]}
