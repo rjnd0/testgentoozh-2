@@ -6,7 +6,7 @@ EAPI=7
 WX_GTK_VER="3.0-gtk3"
 inherit wxwidgets
 
-DESCRIPTION="Othello is a classic strategy game, also known as Reversi"
+DESCRIPTION="Othello is a classic strategy game, also known as Rever"
 HOMEPAGE="http://othello-game.sourceforge.net"
 SRC_URI="https://github.com/bekcpear/othello/archive/refs/tags/0.2.2.tar.gz -> ${P}.tar.gz"
 
