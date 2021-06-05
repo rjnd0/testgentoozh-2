@@ -140,11 +140,13 @@ jobs:
           echo "::set-output name=report::${report:-<None>}"
           echo "::set-output name=vrepoman::${v_repoman:-<None>}"
           echo "::set-output name=gentoocommit::${commit_gentoo:-<None>}"
-          echo "::set-output name=qakeywords::[:mag: QA Keywords explanation](https://dev.gentoo.org/~zmedico/portage/doc/man/repoman.1.html#lbAG)"
+          echo "::set-output name=qaopen::open"
+          echo "::set-output name=qakeywords::[:mag: QA Keywords Explanation](https://dev.gentoo.org/~zmedico/portage/doc/man/repoman.1.html#lbAG)"
           if [[ ${ret} == 0 ]]; then
             if ! egrep -v 'No QA issues found|^=== Package:.*|^[[:space:]]*$' /tmp/report.txt &>/dev/null; then
               echo "::set-output name=state::passed"
               echo "::set-output name=stateicon::heavy_check_mark"
+              echo "::set-output name=qaopen:: "
               echo "::set-output name=qakeywords:: "
             else
               echo "::set-output name=state::passed with non-fatal QA errors"
@@ -155,19 +157,57 @@ jobs:
             echo "::set-output name=stateicon::x"
             exit 1
           fi
+      - name: Hide previous results
+        if: ${{ always() }}
+        shell: bash
+        env:
+          COMMENTS_URL: ${{ github.event.pull_request.comments_url }}
+          COMMENTS_JSON: /tmp/comments.json
+        run: |
+          curl -H "Accept: application/vnd.github.v3+json" \
+               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               -o ${COMMENTS_JSON} ${COMMENTS_URL}
+          node_ids=( $(<${COMMENTS_JSON} jq '.[] | select(.body|test("^##\\s*[a-zA-Z_:]+\\s*repoman\\s*checks")) | select(.user.id == 41898282) | .node_id' | cut -d'"' -f2) )
+          json="{ \"query\": \"mutation {
+              minimizeComment(input: {
+                subjectId: \\\"NODEID\\\",
+                classifier: OUTDATED
+              }) {
+                clientMutationId,
+                minimizedComment {
+                  isMinimized,
+                  minimizedReason,
+                  viewerCanMinimize
+                }
+              }
+            }\"
+          }"
+          json=$(tr -d '\n' <<<${json})
+          for node_id in ${node_ids[@]}; do
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -d "${json/NODEID/${node_id}}" \
+              https://api.github.com/graphql
+          done
       - name: Post result
         if: ${{ always() }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-number: ${{ github.event.number }}
+          issue-number: ${{ github.event.issue.number }}
           body: |
             ## :${{steps.check.outputs.stateicon}}: repoman checks ${{steps.check.outputs.state}}
 
             _${{ steps.check.outputs.vrepoman }}_
             _::gentoo_ repo latest commit: https://github.com/gentoo-mirror/gentoo/commit/${{ steps.check.outputs.gentoocommit }}
 
+            <details ${{ steps.check.outputs.qaopen }}>
+            <summary>QA Result:</summary>
+
             ```
             ${{ steps.check.outputs.report }}
             ```
+
+            </details>
 
             ${{ steps.check.outputs.qakeywords }}
