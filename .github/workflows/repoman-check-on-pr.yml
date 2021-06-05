@@ -168,6 +168,7 @@ jobs:
                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -o ${COMMENTS_JSON} ${COMMENTS_URL}
           node_ids=( $(<${COMMENTS_JSON} jq '.[] | select(.body|test("^##\\s*[a-zA-Z_:]+\\s*repoman\\s*checks")) | select(.user.id == 41898282) | .node_id' | cut -d'"' -f2) )
+          echo "${node_ids[@]}"
           json="{ \"query\": \"mutation {
               minimizeComment(input: {
                 subjectId: \\\"NODEID\\\",
@@ -194,7 +195,7 @@ jobs:
         if: ${{ always() }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.number }}
           body: |
             ## :${{steps.check.outputs.stateicon}}: repoman checks ${{steps.check.outputs.state}}
 
