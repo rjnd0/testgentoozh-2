@@ -119,6 +119,7 @@ jobs:
           check_pkgs=( $(echo "${check_pkgs[@]}" | tr ' ' '\n' | sort -du | tr '\n' ' ') )
           echo -n >/tmp/report.txt
           ret=0
+          echo "pkgs: ${check_pkgs[@]}"
           for pkg in ${check_pkgs[@]}; do
             [[ -d ${pkg} ]] || continue
             echo
@@ -159,7 +160,7 @@ jobs:
             exit 1
           fi
       - name: Hide previous results
-        if: ${{ always() && steps.check.outputs.report }}
+        if: ${{ always() }}
         shell: bash
         env:
           COMMENTS_URL: ${{ github.event.pull_request.comments_url }}
