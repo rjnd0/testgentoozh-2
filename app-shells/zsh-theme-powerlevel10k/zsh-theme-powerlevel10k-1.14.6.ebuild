@@ -5,7 +5,7 @@ EAPI=7
 
 MY_PN="${PN##zsh-theme-}"
 
-DESCRIPTION="Theme for Zsh that emphasizes speed, flexibility and out-of-the-box experience"
+DESCRIPTION="Theme for Zsh that emphasizes speed, flexibility and out-of-the-box experiencekl"
 HOMEPAGE="https://github.com/romkatv/powerlevel10k"
 SRC_URI="${HOMEPAGE}/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
