@@ -5,7 +5,7 @@ EAPI=5
 
 inherit eutils
 
-DESCRIPTION="Advanced color picker written in C++ using GTK+ tooadalkit"
+DESCRIPTION="Advanced color picker written in C++ using GTK+ tooadlkit"
 HOMEPAGE="https://github.com/thezbyg/gpick"
 SRC_URI="https://github.com/thezbyg/gpick/archive/gpick-${PV}.tar.gz"
 
