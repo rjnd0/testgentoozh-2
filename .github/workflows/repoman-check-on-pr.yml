@@ -174,7 +174,7 @@ jobs:
           <summary>QA Result:</summary>
 
           EOF
-            if [[ $(wc -c /var/tmp/report.txt) -le 65136 ]]; then
+            if [[ $(wc -c /var/tmp/report.txt | awk -F'[[:space:]]' '{printf $1}') -le 65136 ]]; then
               echo '```' >>/var/tmp/report.md
                 echo "::set-output name=size::true"
               cat /var/tmp/report.txt >>/var/tmp/report.md
