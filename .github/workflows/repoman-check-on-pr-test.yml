@@ -11,6 +11,7 @@ jobs:
       pull-requests: write
     steps:
       - name: download
+        id: check
         shell: bash
         run: |
           mkdir -m 777 -p /var/tmp
