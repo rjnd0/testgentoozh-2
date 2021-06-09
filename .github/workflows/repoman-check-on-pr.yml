@@ -136,8 +136,7 @@ jobs:
           v_repoman=$(repoman --version) || true
           commit_gentoo=$(git rev-list -n1 HEAD) || true
           report="$(perl -MURI::Escape -00 -p -e 'chomp; $_ = uri_escape $_' /tmp/report.txt)"
-          echo ${report}
-          echo "::set-output name=report::${report}"
+          echo ::set-output name=report::"${report}"
           echo "::set-output name=vrepoman::${v_repoman:-<None>}"
           echo "::set-output name=gentoocommit::${commit_gentoo:-<None>}"
           echo "::set-output name=qaopen::open"
@@ -201,5 +200,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'test 11'
+              body: '${{ steps.check.outputs.report }}'
             })
