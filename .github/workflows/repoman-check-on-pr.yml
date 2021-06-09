@@ -138,6 +138,14 @@ jobs:
             echo >>/var/tmp/report.txt
             popd
           done
+          echo "::set-output name=ret::${ret}"
+          [[ ${ret} == 0 ]]
+      - name: Format report
+        id: report
+        shell: bash
+        env:
+          ret: ${{ steps.check.outputs.ret }}
+        run: |
           if grep '=' /var/tmp/report.txt &>/dev/null; then
             cd /var/db/repos/gentoo || true
             v_repoman=$(repoman --version) || true
@@ -165,18 +173,22 @@ jobs:
           <summary>QA Result:</summary>
 
           EOF
-            echo '```' >>/var/tmp/report.md
-            cat /var/tmp/report.txt >>/var/tmp/report.md
-            echo '```' >>/var/tmp/report.md
+            if [[ $(wc -c /var/tmp/report.txt) -le 65136 ]]; then
+              echo '```' >>/var/tmp/report.md
+                echo "::set-output name=size::true"
+              cat /var/tmp/report.txt >>/var/tmp/report.md
+              echo '```' >>/var/tmp/report.md
+            else
+        echo "_the report is too long, can be downloaded from artifact list of current run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}_" >>/var/tmp/report.md
+            fi
             cat <<EOF >>/var/tmp/report.md
 
           </details>
 
           ${r_explain}
           EOF
-            echo "::set-output name=report::true"
+            echo "::set-output name=has::true"
           fi
-          [[ ${ret} == 0 ]]
       - name: Hide previous results
         if: ${{ always() }}
         shell: bash
@@ -212,7 +224,7 @@ jobs:
               https://api.github.com/graphql
           done
       - name: Post result
-        if: ${{ always() && steps.check.outputs.report }}
+        if: ${{ always() && steps.report.outputs.has }}
         uses: actions/github-script@v4
         with:
           script: |
@@ -224,3 +236,9 @@ jobs:
               repo: context.repo.repo,
               body: cbody
             })
+      - name: Upload big result
+        if: ${{ always() && steps.report.outputs.size }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: repoman-result
+          path: /var/tmp/report.txt
