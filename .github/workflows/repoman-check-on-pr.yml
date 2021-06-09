@@ -117,7 +117,7 @@ jobs:
             done
           done
           check_pkgs=( $(echo "${check_pkgs[@]}" | tr ' ' '\n' | sort -du | tr '\n' ' ') )
-          echo -n >/tmp/report.txt
+          echo -n >/var/tmp/report.txt
           ret=0
           echo "pkgs: ${check_pkgs[@]}"
           sum=${#check_pkgs[@]}
@@ -133,19 +133,19 @@ jobs:
               continue
             fi
             pushd ${pkg}
-            echo "=== Package: ${pkg} ===" >>/tmp/report.txt
-            repoman full -q > >(tee -ai /tmp/report.txt) || ret=1
-            echo >>/tmp/report.txt
+            echo "=== Package: ${pkg} ===" >>/var/tmp/report.txt
+            repoman full -q > >(tee -ai /var/tmp/report.txt) || ret=1
+            echo >>/var/tmp/report.txt
             popd
           done
-          if grep '=' /tmp/report.txt &>/dev/null; then
+          if grep '=' /var/tmp/report.txt &>/dev/null; then
             cd /var/db/repos/gentoo || true
             v_repoman=$(repoman --version) || true
             commit_gentoo=$(git rev-list -n1 HEAD) || true
             r_restat="open"
             r_explain="[:mag: QA Keywords Explanation](https://dev.gentoo.org/~zmedico/portage/doc/man/repoman.1.html#lbAG)"
             if [[ ${ret} == 0 ]]; then
-              if ! egrep -v 'No QA issues found|^=== Package:.*|^[[:space:]]*$' /tmp/report.txt &>/dev/null; then
+              if ! egrep -v 'No QA issues found|^=== Package:.*|^[[:space:]]*$' /var/tmp/report.txt &>/dev/null; then
                 r_title=":heavy_check_mark: repoman checks passed"
                 r_restat=""
                 r_explain=""
@@ -155,7 +155,7 @@ jobs:
             else
               r_title=":x: repoman checks failed"
             fi
-            cat <<EOF >/tmp/report.md
+            cat <<EOF >/var/tmp/report.md
           ## ${r_title}
 
           ${v_repoman}
@@ -165,10 +165,10 @@ jobs:
           <summary>QA Result:</summary>
 
           EOF
-            echo '```' >>/tmp/report.md
-            cat /tmp/report.txt >>/tmp/report.md
-            echo '```' >>/tmp/report.md
-            cat <<EOF >>/tmp/report.md
+            echo '```' >>/var/tmp/report.md
+            cat /var/tmp/report.txt >>/var/tmp/report.md
+            echo '```' >>/var/tmp/report.md
+            cat <<EOF >>/var/tmp/report.md
 
           </details>
 
@@ -218,7 +218,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const fs = require("fs").promises;
-            var cbody = await fs.readFile("/tmp/result.md", "utf8");
+            var cbody = await fs.readFile("/var/tmp/result.md", "utf8");
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
