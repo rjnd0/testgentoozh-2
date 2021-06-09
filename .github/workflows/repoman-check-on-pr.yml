@@ -194,6 +194,7 @@ jobs:
         if: ${{ always() && steps.check.outputs.report }}
         uses: actions/github-script@v4
         with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             github.issues.createComment({
               issue_number: context.issue.number,
