@@ -155,7 +155,7 @@ jobs:
             else
               r_title=":x: repoman checks failed"
             fi
-            cat <<EOF >/tmp/report.md
+            eval "cat <<'EOF' >/tmp/report.md
           ## ${r_title}
 
           ${v_repoman}
@@ -165,13 +165,15 @@ jobs:
           <summary>QA Result:</summary>
 
           ```
-          $(cat /tmp/report.txt)
+          EOF"
+            cat /tmp/report.txt >>/tmp/report.md
+            eval "cat <<'EOF' >>/tmp/report.md
           ```
 
           </details>
 
           ${r_explain}
-          EOF
+          EOF"
             echo "::set-output name=report::true"
           fi
           [[ ${ret} == 0 ]]
