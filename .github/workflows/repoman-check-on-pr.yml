@@ -179,7 +179,7 @@ jobs:
               cat /var/tmp/report.txt >>/var/tmp/report.md
               echo '```' >>/var/tmp/report.md
             else
-        echo "_the report is too long, can be downloaded from artifact list of current run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}_" >>/var/tmp/report.md
+              echo "_the report is too long, can be downloaded from artifact list of current run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}_" >>/var/tmp/report.md
             fi
             cat <<EOF >>/var/tmp/report.md
 
