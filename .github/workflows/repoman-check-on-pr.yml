@@ -98,7 +98,7 @@ jobs:
         env:
           THEBASEREF: ${{ steps.basecommit.outputs.sha }}
         run: |
-          set -e
+          set -xe
           sudo mv ${{ github.workspace }}/gentoo{,-zh} /var/db/repos/
           cd /var/db/repos/gentoo-zh
           echo "git diff --raw ${THEBASEREF}"
@@ -213,18 +213,14 @@ jobs:
           done
       - name: Post result
         if: ${{ always() && steps.check.outputs.report }}
-        shell: bash
-        run: |
-          cat /var/tmp/result.md
-        #uses: actions/github-script@v4
-        #with:
-        #  github-token: ${{secrets.GITHUB_TOKEN}}
-        #  script: |
-        #    const fs = require("fs").promises;
-        #    var cbody = await fs.readFile("/var/tmp/result.md", "utf8");
-        #    github.issues.createComment({
-        #      issue_number: context.issue.number,
-        #      owner: context.repo.owner,
-        #      repo: context.repo.repo,
-        #      body: cbody
-        #    })
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const fs = require("fs").promises;
+            var cbody = await fs.readFile("/var/tmp/report.md", "utf8");
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: cbody
+            })
