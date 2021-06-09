@@ -3,7 +3,7 @@
 
 EAPI=7
 
-# sed -E '/^name|^version/bn;d;:n;s/^name\s=\s"([0-9a-zA-Z_-]+)"/\1-/;/^version\s/bv;N;s/\n//;:v;s/([0-9a-zA-Z_-]+)version\s=\s"([a-zA-Z0-9\.\+-]+)"/\1\2/' Cargo.lock | xclip
+# sed -E '/^name|^version/bn;d;:n;s/^name\s=\s"([0-9a-zA-Z_-]+)"/\1-/;/^version\s/bv;N;s/\n//;:v;s/([0-9a-zA-Z_-]+)version\s=\s"([a-zA-Z0-9\.\+-]+)"/\1\2/' Cargo.lock | xclipaa
 CRATES="
 addr2line-0.13.0
 adler-0.2.3
