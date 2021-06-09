@@ -1,0 +1,45 @@
+name: repoman-test
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        require: false
+
+jobs:
+  check-changed-ebuilds:
+    name: check changed ebuilds
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: download
+        id: check
+        shell: bash
+        run: |
+          mkdir -m 777 -p /var/tmp
+          curl -o /var/tmp/report.txt ${{ github.event.inputs.url}}
+          cat <<EOF >/var/tmp/report.md
+          ## title
+
+          v
+          _::gentoo_ repo latest commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
+
+          <details open>
+          <summary>QA Result:</summary>
+
+          EOF
+          echo '```' >>/var/tmp/report.md
+          cat /var/tmp/report.txt >>/var/tmp/report.md
+          echo '```' >>/var/tmp/report.md
+          cat <<EOF >>/var/tmp/report.md
+
+          </details>
+
+          EOF
+      - name: Post result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: repoman-report
+          path: /var/tmp/report.md
