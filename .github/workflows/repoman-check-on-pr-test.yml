@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: download
         shell: bash
+        run: |
           mkdir -m 777 -p /var/tmp
           curl -o /var/tmp/report.txt https://fars.ee/K3sf
           cat <<EOF >/var/tmp/report.md
