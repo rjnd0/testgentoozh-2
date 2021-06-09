@@ -1,4 +1,4 @@
-name: repoman-test
+name: repoman-test-upload
 on:
   workflow_dispatch:
     inputs:
