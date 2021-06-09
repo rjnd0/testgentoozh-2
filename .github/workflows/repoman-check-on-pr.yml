@@ -98,7 +98,7 @@ jobs:
         env:
           THEBASEREF: ${{ steps.basecommit.outputs.sha }}
         run: |
-          set -xe
+          set -e
           sudo mv ${{ github.workspace }}/gentoo{,-zh} /var/db/repos/
           cd /var/db/repos/gentoo-zh
           echo "git diff --raw ${THEBASEREF}"

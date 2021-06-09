@@ -1,0 +1,50 @@
+name: repoman
+on:
+  workflow_dispatch:
+
+jobs:
+  check-changed-ebuilds:
+    name: check changed ebuilds
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: download
+        shell: bash
+          mkdir -m 777 -p /var/tmp
+          curl -o /var/tmp/report.txt https://fars.ee/K3sf
+          cat <<EOF >/var/tmp/report.md
+          ## title
+
+          v
+          _::gentoo_ repo latest commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
+
+          <details open>
+          <summary>QA Result:</summary>
+
+          EOF
+          echo '```' >>/var/tmp/report.md
+          cat /var/tmp/report.txt >>/var/tmp/report.md
+          echo '```' >>/var/tmp/report.md
+          cat <<EOF >>/var/tmp/report.md
+
+          </details>
+
+          EOF
+          echo "::set-output name=report::true"
+          fi
+          [[ ${ret} == 0 ]]
+      - name: Post result
+        if: ${{ always() && steps.check.outputs.report }}
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const fs = require("fs").promises;
+            var cbody = await fs.readFile("/var/tmp/report.md", "utf8");
+            github.issues.createComment({
+              issue_number: 47,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: cbody
+            })
