@@ -138,23 +138,24 @@ jobs:
             echo >>/tmp/report.txt
             popd
           done
-          cd /var/db/repos/gentoo || true
-          v_repoman=$(repoman --version) || true
-          commit_gentoo=$(git rev-list -n1 HEAD) || true
-          r_restat="open"
-          r_explain="[:mag: QA Keywords Explanation](https://dev.gentoo.org/~zmedico/portage/doc/man/repoman.1.html#lbAG)"
-          if [[ ${ret} == 0 ]]; then
-            if ! egrep -v 'No QA issues found|^=== Package:.*|^[[:space:]]*$' /tmp/report.txt &>/dev/null; then
-              r_title=":heavy_check_mark: repoman checks passed"
-              r_restat=""
-              r_explain=""
+          if grep '=' /tmp/report.txt &>/dev/null; then
+            cd /var/db/repos/gentoo || true
+            v_repoman=$(repoman --version) || true
+            commit_gentoo=$(git rev-list -n1 HEAD) || true
+            r_restat="open"
+            r_explain="[:mag: QA Keywords Explanation](https://dev.gentoo.org/~zmedico/portage/doc/man/repoman.1.html#lbAG)"
+            if [[ ${ret} == 0 ]]; then
+              if ! egrep -v 'No QA issues found|^=== Package:.*|^[[:space:]]*$' /tmp/report.txt &>/dev/null; then
+                r_title=":heavy_check_mark: repoman checks passed"
+                r_restat=""
+                r_explain=""
+              else
+                r_title=":white_circle: repoman checks passed with non-fatal QA errors"
+              fi
             else
-              r_title=":white_circle: repoman checks passed with non-fatal QA errors"
+              r_title=":x: repoman checks failed"
             fi
-          else
-            r_title=":x: repoman checks failed"
-          fi
-          cat <<EOF >/tmp/report.md
+            cat <<EOF >/tmp/report.md
           ## ${r_title}
 
           ${v_repoman}
@@ -171,6 +172,8 @@ jobs:
 
           ${r_explain}
           EOF
+            echo "::set-output name=report::true"
+          fi
           [[ ${ret} == 0 ]]
       - name: Hide previous results
         if: ${{ always() }}
