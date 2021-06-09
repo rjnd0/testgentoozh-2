@@ -196,7 +196,21 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            cbody_raw=`${{ steps.check.outputs.report }}`
+            cbody_raw=`## :${{steps.check.outputs.stateicon}}: repoman checks ${{steps.check.outputs.state}}
+
+            _${{ steps.check.outputs.vrepoman }}_
+            _::gentoo_ repo latest commit: https://github.com/gentoo-mirror/gentoo/commit/${{ steps.check.outputs.gentoocommit }}
+
+            <details ${{ steps.check.outputs.qaopen }}>
+            <summary>QA Result:</summary>
+
+            %60%60%60
+            ${{ steps.check.outputs.report }}`
+            %60%60%60
+
+            </details>
+
+            ${{ steps.check.outputs.qakeywords }}`
             cbody=decodeURIComponent(cbody_raw)
             github.issues.createComment({
               issue_number: context.issue.number,
