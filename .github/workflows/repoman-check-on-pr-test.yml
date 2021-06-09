@@ -1,6 +1,9 @@
 name: repoman-test
 on:
   workflow_dispatch:
+    inputs:
+      url:
+        require: false
 
 jobs:
   check-changed-ebuilds:
@@ -15,7 +18,7 @@ jobs:
         shell: bash
         run: |
           mkdir -m 777 -p /var/tmp
-          curl -o /var/tmp/report.txt https://fars.ee/K3sf
+          curl -o /var/tmp/report.txt ${{ github.event.inputs.url}}
           cat <<EOF >/var/tmp/report.md
           ## title
 
