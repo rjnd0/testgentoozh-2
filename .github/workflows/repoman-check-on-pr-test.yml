@@ -34,8 +34,6 @@ jobs:
 
           EOF
           echo "::set-output name=report::true"
-          fi
-          [[ ${ret} == 0 ]]
       - name: Post result
         if: ${{ always() && steps.check.outputs.report }}
         uses: actions/github-script@v4
