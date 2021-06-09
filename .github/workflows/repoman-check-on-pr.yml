@@ -213,15 +213,18 @@ jobs:
           done
       - name: Post result
         if: ${{ always() && steps.check.outputs.report }}
-        uses: actions/github-script@v4
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const fs = require("fs").promises;
-            var cbody = await fs.readFile("/var/tmp/result.md", "utf8");
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: cbody
-            })
+        shell: bash
+        run: |
+          cat /var/tmp/result.md
+        #uses: actions/github-script@v4
+        #with:
+        #  github-token: ${{secrets.GITHUB_TOKEN}}
+        #  script: |
+        #    const fs = require("fs").promises;
+        #    var cbody = await fs.readFile("/var/tmp/result.md", "utf8");
+        #    github.issues.createComment({
+        #      issue_number: context.issue.number,
+        #      owner: context.repo.owner,
+        #      repo: context.repo.repo,
+        #      body: cbody
+        #    })
