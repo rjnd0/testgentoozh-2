@@ -11,7 +11,7 @@ RESTRICT="mirror"
 
 inherit php-ext-pecl-r3
 
-DESCRIPTION="Solr client"
+DESCRIPTION="Solr clientaa"
 
 LICENSE="PHP License"
 SLOT="0"

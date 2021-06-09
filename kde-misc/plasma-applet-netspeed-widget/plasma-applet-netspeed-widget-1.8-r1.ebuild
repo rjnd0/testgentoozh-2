@@ -13,7 +13,7 @@ else
 	KEYWORDS="~amd64"
 fi
 
-DESCRIPTION="Plasma 5 widget that displays the currently used network bandwidth.aa"
+DESCRIPTION="Plasma 5 widget that displays the currently used network bandwidth.aaa"
 HOMEPAGE="https://www.kde-look.org/p/998895/
 https://github.com/HessiJames/plasma-applet-netspeed-widget"
 
