@@ -142,6 +142,7 @@ jobs:
           [[ ${ret} == 0 ]]
       - name: Format report
         id: report
+        if: ${{ always() }}
         shell: bash
         env:
           ret: ${{ steps.check.outputs.ret }}
