@@ -120,12 +120,18 @@ jobs:
           echo -n >/tmp/report.txt
           ret=0
           echo "pkgs: ${check_pkgs[@]}"
+          sum=${#check_pkgs[@]}
+          declare -i i=0
           for pkg in ${check_pkgs[@]}; do
-            [[ -d ${pkg} ]] || continue
+            i+=1
             echo
-            echo "================================="
-            echo ">>> Checking ${pkg} ..."
-            echo "================================="
+            echo "======================================"
+            echo ">>> [${i}/${sum}] Checking ${pkg} ..."
+            echo "======================================"
+            if [[ ! -d ${pkg} ]]; then
+              echo "not exists, skip it"
+              continue
+            fi
             pushd ${pkg}
             echo "=== Package: ${pkg} ===" >>/tmp/report.txt
             repoman full -q > >(tee -ai /tmp/report.txt) || ret=1
