@@ -20,7 +20,7 @@ MY_SERVER_P="${MY_SERVER_PN}-v${MY_SERVER_PV}"
 
 SRC_URI="https://github.com/Genymobile/${PN}/releases/download/v${MY_SERVER_PV}/${MY_SERVER_P}"
 
-DESCRIPTION="Display and control your Android devicedsjak"
+DESCRIPTION="Display and control your Android devicedsk"
 HOMEPAGE="https://blog.rom1v.com/2018/03/introducing-scrcpy/"
 
 LICENSE="Apache-2.0"
