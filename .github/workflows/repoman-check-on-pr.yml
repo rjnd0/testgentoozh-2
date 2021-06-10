@@ -133,9 +133,9 @@ jobs:
               continue
             fi
             pushd ${pkg}
+            [[ ${i} == 1 ]] || echo >>/var/tmp/report.txt
             echo "=== Package: ${pkg} ===" >>/var/tmp/report.txt
             repoman full -q > >(tee -ai /var/tmp/report.txt) || ret=1
-            echo >>/var/tmp/report.txt
             popd
           done
           echo "::set-output name=ret::${ret}"
