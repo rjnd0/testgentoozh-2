@@ -174,7 +174,7 @@ jobs:
           <summary>QA Result:</summary>
 
           EOF
-            if [[ $(wc -c /var/tmp/report.txt | awk -F'[[:space:]]' '{printf $1}') -le 65136 ]]; then
+            if [[ $(wc -c /var/tmp/report.txt | awk -F'[[:space:]]' '{printf $1}') -le 65000 ]]; then
               echo '```' >>/var/tmp/report.md
               cat /var/tmp/report.txt >>/var/tmp/report.md
               echo '```' >>/var/tmp/report.md
@@ -182,7 +182,11 @@ jobs:
               cd /var/db/repos/gentoo-zh || true
               commit_id=$(git rev-list -n1 HEAD | cut -b1-7)
               echo "::set-output name=commit::${commit_id}"
-              echo "- _the report is too long, can be downloaded from **Artifacts** list of current run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}_" >>/var/tmp/report.md
+              cat <<EOF >>/var/tmp/report.md
+              - _the report is too long, can be downloaded from **Artifacts** list of the current run:
+                https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+                filename: **repoman-report-${commit_id}**_
+              EOF
             fi
             cat <<EOF >>/var/tmp/report.md
 
