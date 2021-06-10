@@ -183,10 +183,10 @@ jobs:
               commit_id=$(git rev-list -n1 HEAD | cut -b1-7)
               echo "::set-output name=commit::${commit_id}"
               cat <<EOF >>/var/tmp/report.md
-              - _the report is too long, can be downloaded from **Artifacts** list of the current run:
-                https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
-                filename: **repoman-report-${commit_id}**_
-              EOF
+          - _the report is too long, can be downloaded from **Artifacts** list of the current run:
+            https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+            filename: **repoman-report-${commit_id}**_
+          EOF
             fi
             cat <<EOF >>/var/tmp/report.md
 
