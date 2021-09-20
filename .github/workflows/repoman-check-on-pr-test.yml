@@ -27,6 +27,8 @@ jobs:
           /usr/bin/env python -V
           /usr/bin/env python -VV
           python -m ensurepip --upgrade
+          which pip
+          pip install PyYAML
           echo $PATH
           sudo bash -c "echo \$PATH"
           sudo /usr/bin/env python -V
