@@ -26,7 +26,8 @@ jobs:
           which python
           /usr/bin/env python -V
           /usr/bin/env python -VV
-          tree /opt/hostedtoolcache/Python/3.9.7/x64
+          echo $PATH
+          sudo echo $PATH
           sudo /usr/bin/env python -V
           sudo /usr/bin/env python -VV
           sudo mkdir -m 777 -p /etc/portage
