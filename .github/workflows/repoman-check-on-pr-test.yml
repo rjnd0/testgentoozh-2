@@ -45,7 +45,7 @@ jobs:
         run: |
           set -xe
           printf "[build_ext]\nportage-ext-modules=true" >>setup.cfg
-          sudo ./setup.py install
+          sudo ${pythonLocation}/bin/python ./setup.py install
           sudo useradd portage -d /var/tmp/portage -s /bin/false
           sudo ln -s /var/db/repos/gentoo/profiles/default/linux/amd64/17.1 /etc/portage/make.profile
           sudo printf "[gentoo-zh]\nlocation = /var/db/repos/gentoo-zh" >>/etc/portage/repos.conf
@@ -54,5 +54,5 @@ jobs:
         run: |
           set -xe
           cd repoman
-          sudo ./setup.py install
+          sudo ${pythonLocation}/bin/python ./setup.py install
           sudo mv /usr/local/share/repoman /usr/share/ || true
