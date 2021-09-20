@@ -13,41 +13,40 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - name: download
-        id: check
+      - name: Setup python3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Prepare environment
         shell: bash
         run: |
-          mkdir -m 777 -p /var/tmp
-          curl -o /var/tmp/report.txt ${{ github.event.inputs.url}}
-          cat <<EOF >/var/tmp/report.md
-          ## title
-
-          v
-          _::gentoo_ repo latest commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
-
-          <details open>
-          <summary>QA Result:</summary>
-
-          EOF
-          echo '```' >>/var/tmp/report.md
-          cat /var/tmp/report.txt >>/var/tmp/report.md
-          echo '```' >>/var/tmp/report.md
-          cat <<EOF >>/var/tmp/report.md
-
-          </details>
-
-          EOF
-          echo "::set-output name=report::true"
-      - name: Post result
-        if: ${{ always() && steps.check.outputs.report }}
-        uses: actions/github-script@v4
+          set -xe
+          python -V
+          python -VV
+          sudo /usr/bin/env python -V
+          sudo /usr/bin/env python -VV
+          sudo mkdir -m 777 -p /etc/portage
+          sudo mkdir -m 777 -p /var/db/repos/gentoo{,-zh}
+          sudo mkdir -m 777 -p /var/tmp/portage
+      - name: Install dependencies
+        run: sudo apt-get install -y --no-install-recommends libxslt-dev libxml2-dev libxml2-utils zstd python3-lxml jq
+      - name: Fetch portage
+        uses: actions/checkout@v2
         with:
-          script: |
-            const fs = require("fs").promises;
-            var cbody = await fs.readFile("/var/tmp/report.md", "utf8");
-            github.issues.createComment({
-              issue_number: 47,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: cbody
-            })
+          repository: gentoo/portage
+      - name: Install portage
+        shell: bash
+        run: |
+          set -xe
+          printf "[build_ext]\nportage-ext-modules=true" >>setup.cfg
+          sudo ./setup.py install
+          sudo useradd portage -d /var/tmp/portage -s /bin/false
+          sudo ln -s /var/db/repos/gentoo/profiles/default/linux/amd64/17.1 /etc/portage/make.profile
+          sudo printf "[gentoo-zh]\nlocation = /var/db/repos/gentoo-zh" >>/etc/portage/repos.conf
+      - name: Install repoman
+        shell: bash
+        run: |
+          set -xe
+          cd repoman
+          sudo ./setup.py install
+          sudo mv /usr/local/share/repoman /usr/share/ || true
