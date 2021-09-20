@@ -26,6 +26,7 @@ jobs:
           which python
           /usr/bin/env python -V
           /usr/bin/env python -VV
+          python -m ensurepip --upgrade
           echo $PATH
           sudo bash -c "echo \$PATH"
           sudo /usr/bin/env python -V
