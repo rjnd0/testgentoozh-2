@@ -55,5 +55,5 @@ jobs:
           set -xe
           cd repoman
           sudo ${pythonLocation}/bin/python ./setup.py install
-          sudo ${pythonLocation}/bin/python portage --version
+          sudo ${pythonLocation}/bin/python emerge --version
           sudo ${pythonLocation}/bin/python repoman --version
