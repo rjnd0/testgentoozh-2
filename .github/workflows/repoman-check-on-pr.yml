@@ -15,15 +15,15 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    container:
-      image: ghcr.io/liangyongxiang/gentoo-testing:master
+        #container:
+        #image: ghcr.io/liangyongxiang/gentoo-testing:master
 
     steps:
-      - name: prepare tools
-        shell: bash
-        run: |
-          set -e
-          emerge -vj app-misc/jq
+      #- name: prepare tools
+      #  shell: bash
+      #  run: |
+      #    set -e
+      #    emerge -vj app-misc/jq
       - name: Checkout the head ref of the pull request
         uses: actions/checkout@v2
         with:
@@ -31,6 +31,14 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.sha }}
           path: gentoo-zh
+      - name: test
+        shell: bash
+        run: |
+          ls -a
+          pwd
+          ls -a ${{ github.workspace }}
+          ls -a ~
+          ls -a /
       - name: Get the base commit
         id: basecommit
         shell: bash
