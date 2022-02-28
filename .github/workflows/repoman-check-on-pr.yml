@@ -122,13 +122,14 @@ jobs:
           cat <<EOF >/var/tmp/report.md
           ## ${r_title}
 
-          | ${v_pkgcheck}
-          | the corresponding _**::gentoo**_ commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
+          ${v_pkgcheck}
+          the corresponding _**::gentoo**_ commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
 
           EOF
 
           if [[ -n ${r_explain} ]]; then
-            echo "**QA Results:**" >>/var/tmp/report.md
+            echo "<details open><summary><b>QA Results:</b></summary>
+            " >>/var/tmp/report.md
             if [[ ${r_len} -le 65000 ]]; then
               echo '```' >>/var/tmp/report.md
               cat /var/tmp/report.txt >>/var/tmp/report.md
@@ -144,6 +145,7 @@ jobs:
               echo "::set-output name=commit::${commit_id}"
             fi
             cat <<EOF >>/var/tmp/report.md
+          </details>
 
           ${r_explain}
           EOF
