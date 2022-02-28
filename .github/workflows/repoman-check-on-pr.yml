@@ -108,14 +108,15 @@ jobs:
           commit_gentoo=$(cd /var/db/repos/gentoo && git rev-list -n1 HEAD) || true
 
           r_len=$(wc -c /var/tmp/report.txt | awk -F'[[:space:]]' '{printf $1}')
+          r_header="`pkgcheck` checks"
           if [[ ${r_len} == 0 ]]; then
-            r_title=":heavy_check_mark: pkgcheck checks passed"
+            r_title=":heavy_check_mark: ${r_header} passed"
           else
             r_explain="[:mag: QA Keywords Explanation](https://pkgcore.github.io/pkgcheck/man/pkgcheck.html#keywords)"
             if [[ ${ret} == 0 ]]; then
-              r_title=":white_circle: pkgcheck checks passed but with something can be improved!"
+              r_title=":white_circle: ${r_header} passed but with something can be improved!"
             else
-              r_title=":x: pkgcheck checks failed"
+              r_title=":x: ${r_header} failed"
             fi
           fi
 
@@ -161,7 +162,7 @@ jobs:
           curl -H "Accept: application/vnd.github.v3+json" \
                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -o ${COMMENTS_JSON} ${COMMENTS_URL}
-          node_ids=( $(<${COMMENTS_JSON} jq '.[] | select(.body|test("^##\\s*[a-zA-Z_:]+\\s*pkgcheck\\s*checks")) | select(.user.id == 41898282) | .node_id' | cut -d'"' -f2) )
+          node_ids=( $(<${COMMENTS_JSON} jq '.[] | select(.body|test("^##\\s*[a-zA-Z_:]+\\s*\`pkgcheck\`\\s*checks")) | select(.user.id == 41898282) | .node_id' | cut -d'"' -f2) )
           echo "${node_ids[@]}"
           json="{ \"query\": \"mutation {
               minimizeComment(input: {
