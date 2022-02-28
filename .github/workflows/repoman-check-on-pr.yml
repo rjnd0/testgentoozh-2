@@ -19,11 +19,11 @@ jobs:
       image: ghcr.io/liangyongxiang/gentoo-testing:master
 
     steps:
-      #- name: prepare tools
-      #  shell: bash
-      #  run: |
-      #    set -e
-      #    emerge -vj app-misc/jq
+      - name: prepare tools
+        shell: bash
+        run: |
+          set -e
+          emerge -vj app-misc/jq
       - name: Checkout the head ref of the pull request
         uses: actions/checkout@v2
         with:
@@ -39,13 +39,13 @@ jobs:
           echo ">> pwd"
           pwd
           echo ">> ws"
-          ls -a ${{ github.workspace }}
+          ls -a ${{ github.workspace }} || true
           echo ">> ls -a ~"
-          ls -a ~
+          ls -a ~ || true
           echo ">> ls -a /vat/db"
-          ls -a /var/db
+          ls -a /var/db || true
           echo ">> ls -a /vat/db/repos"
-          ls -a /var/db/repos
+          ls -a /var/db/repos || true
       - name: Get the base commit
         id: basecommit
         shell: bash
@@ -82,7 +82,7 @@ jobs:
           THEBASEREF: ${{ steps.basecommit.outputs.sha }}
         run: |
           set -e
-          mv ${{ github.workspace }}/gentoo-zh /var/db/repos/
+          mv ./gentoo-zh /var/db/repos/
           cd /var/db/repos/gentoo-zh
           echo "git diff --raw ${THEBASEREF}"
           git diff --raw ${THEBASEREF}
