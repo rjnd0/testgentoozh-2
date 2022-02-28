@@ -46,6 +46,9 @@ jobs:
           ls -a /var/db || true
           echo ">> ls -a /vat/db/repos"
           ls -a /var/db/repos || true
+          echo ">> cat /vat/db/repos/gentoo/profiles/repo_name"
+          cat /vat/db/repos/gentoo/profiles/repo_name || true
+          emerge --info -v || true
       - name: Get the base commit
         id: basecommit
         shell: bash
@@ -83,6 +86,10 @@ jobs:
         run: |
           set -e
           mv ./gentoo-zh /var/db/repos/
+          mkdir -p /etc/portage/repos.conf
+          echo "[gentoo-zh]
+          location = /var/db/repos/gentoo-zh
+          " >/etc/portage/repos.conf/gentoo-zh.conf
           cd /var/db/repos/gentoo-zh
           echo "git diff --raw ${THEBASEREF}"
           git diff --raw ${THEBASEREF}
