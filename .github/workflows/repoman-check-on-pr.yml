@@ -122,8 +122,8 @@ jobs:
           cat <<EOF >/var/tmp/report.md
           ## ${r_title}
 
-          ${v_pkgcheck}
-          corresponding _**::gentoo**_ commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
+          | ${v_pkgcheck}
+          | the corresponding _**::gentoo**_ commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
 
           EOF
 
@@ -144,6 +144,7 @@ jobs:
               echo "::set-output name=commit::${commit_id}"
             fi
             cat <<EOF >>/var/tmp/report.md
+
           ${r_explain}
           EOF
           fi
