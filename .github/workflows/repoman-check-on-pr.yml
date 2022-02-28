@@ -62,7 +62,7 @@ jobs:
           THEBASEREF: ${{ steps.basecommit.outputs.sha }}
         run: |
           set -e
-          mv ${{ GITHUB_WORKSPACE }}/gentoo-zh /var/db/repos/
+          mv ${GITHUB_WORKSPACE}/gentoo-zh /var/db/repos/
           mkdir -p /etc/portage/repos.conf
           echo "[gentoo]
           location = /var/db/repos/gentoo
