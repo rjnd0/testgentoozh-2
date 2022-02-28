@@ -1,4 +1,4 @@
-name: repoman
+name: pkgcheck
 on:
   pull_request_target:
     branches:
@@ -11,46 +11,14 @@ on:
 jobs:
   check-changed-ebuilds:
     name: check changed ebuilds
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+    container:
+      image: ghcr.io/liangyongxiang/gentoo-testing:master
+
     steps:
-      - name: Setup python3.9
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Prepare environment
-        shell: bash
-        run: |
-          set -xe
-          python -V
-          python -VV
-          sudo mkdir -m 777 -p /etc/portage
-          sudo mkdir -m 777 -p /var/db/repos/gentoo{,-zh}
-          sudo mkdir -m 777 -p /var/tmp/portage
-      - name: Install dependencies
-        run: sudo apt-get install -y --no-install-recommends libxslt-dev libxml2-dev libxml2-utils zstd python3-lxml jq
-      - name: Fetch portage
-        uses: actions/checkout@v2
-        with:
-          repository: gentoo/portage
-      - name: Install portage
-        shell: bash
-        run: |
-          set -xe
-          printf "[build_ext]\nportage-ext-modules=true" >>setup.cfg
-          sudo ./setup.py install
-          sudo useradd portage -d /var/tmp/portage -s /bin/false
-          sudo ln -s /var/db/repos/gentoo/profiles/default/linux/amd64/17.1 /etc/portage/make.profile
-          sudo printf "[gentoo-zh]\nlocation = /var/db/repos/gentoo-zh" >>/etc/portage/repos.conf
-      - name: Install repoman
-        shell: bash
-        run: |
-          set -xe
-          cd repoman
-          sudo ./setup.py install
-          sudo mv /usr/local/share/repoman /usr/share/ || true
       - name: Checkout the head ref of the pull request
         uses: actions/checkout@v2
         with:
@@ -58,11 +26,6 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.sha }}
           path: gentoo-zh
-      - name: Fetch ::gentoo repo
-        uses: actions/checkout@v2
-        with:
-          repository: gentoo-mirror/gentoo
-          path: gentoo
       - name: Get the base commit
         id: basecommit
         shell: bash
@@ -99,7 +62,7 @@ jobs:
           THEBASEREF: ${{ steps.basecommit.outputs.sha }}
         run: |
           set -e
-          sudo mv ${{ github.workspace }}/gentoo{,-zh} /var/db/repos/
+          sudo mv ${{ github.workspace }}/gentoo-zh /var/db/repos/
           cd /var/db/repos/gentoo-zh
           echo "git diff --raw ${THEBASEREF}"
           git diff --raw ${THEBASEREF}
@@ -117,63 +80,43 @@ jobs:
             done
           done
           check_pkgs=( $(echo "${check_pkgs[@]}" | tr ' ' '\n' | sort -du | tr '\n' ' ') )
-          echo -n >/var/tmp/report.txt
           ret=0
           echo "pkgs: ${check_pkgs[@]}"
-          sum=${#check_pkgs[@]}
-          declare -i i=0
-          for pkg in ${check_pkgs[@]}; do
-            i+=1
-            echo
-            echo "======================================"
-            echo ">>> [${i}/${sum}] Checking ${pkg} ..."
-            echo "======================================"
-            if [[ ! -d ${pkg} ]]; then
-              echo "not exists, skip it"
-              continue
-            fi
-            pushd ${pkg}
-            [[ ${i} == 1 ]] || echo >>/var/tmp/report.txt
-            echo "=== Package: ${pkg} ===" >>/var/tmp/report.txt
-            repoman full -q > >(tee -ai /var/tmp/report.txt) || ret=1
-            popd
-          done
+          pkgcheck scan --exit error ${check_pkgs[@]} >/var/tmp/report.txt || ret=$?
           echo "::set-output name=ret::${ret}"
           [[ ${ret} == 0 ]]
       - name: Format report
         id: report
-        if: ${{ always() }}
         shell: bash
         env:
           ret: ${{ steps.check.outputs.ret }}
         run: |
-          if grep '=' /var/tmp/report.txt &>/dev/null; then
-            cd /var/db/repos/gentoo || true
-            v_repoman=$(repoman --version) || true
-            commit_gentoo=$(git rev-list -n1 HEAD) || true
-            r_restat="open"
-            r_explain="[:mag: QA Keywords Explanation](https://dev.gentoo.org/~zmedico/portage/doc/man/repoman.1.html#lbAG)"
+          set -e
+
+          v_pkgcheck=$(pkgcheck --version) || true
+          commit_gentoo=$(cd /var/db/repos/gentoo && git rev-list -n1 HEAD) || true
+
+          if [[ ! -e /var/tmp/report.txt ]]; then
+            r_title=":heavy_check_mark: pkgcheck checks passed"
+          else
+            r_explain="[:mag: QA Keywords Explanation](https://pkgcore.github.io/pkgcheck/man/pkgcheck.html#keywords)"
             if [[ ${ret} == 0 ]]; then
-              if ! egrep -v 'No QA issues found|^=== Package:.*|^[[:space:]]*$' /var/tmp/report.txt &>/dev/null; then
-                r_title=":heavy_check_mark: repoman checks passed"
-                r_restat=""
-                r_explain=""
-              else
-                r_title=":white_circle: repoman checks passed with non-fatal QA errors"
-              fi
+              r_title=":white_circle: pkgcheck checks passed but with something can be improved!"
             else
-              r_title=":x: repoman checks failed"
+              r_title=":x: pkgcheck checks failed"
             fi
-            cat <<EOF >/var/tmp/report.md
+          fi
+
+          cat <<EOF >/var/tmp/report.md
           ## ${r_title}
 
-          ${v_repoman}
+          ${v_pkgcheck}
           _::gentoo_ repo latest commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
 
-          <details ${r_restat}>
-          <summary>QA Result:</summary>
-
           EOF
+
+          if [[ -n ${r_explain} ]]; then
+            echo "**QA Results:**" >>/var/tmp/report.md
             if [[ $(wc -c /var/tmp/report.txt | awk -F'[[:space:]]' '{printf $1}') -le 65000 ]]; then
               echo '```' >>/var/tmp/report.md
               cat /var/tmp/report.txt >>/var/tmp/report.md
@@ -181,21 +124,18 @@ jobs:
             else
               cd /var/db/repos/gentoo-zh || true
               commit_id=$(git rev-list -n1 HEAD | cut -b1-7)
-              echo "::set-output name=commit::${commit_id}"
               cat <<EOF >>/var/tmp/report.md
           - _the report is too long, can be downloaded from **Artifacts** list of the current run:
             https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
-            filename: **repoman-report-${commit_id}**_
+            filename: **pkgcheck-report-${commit_id}**_
           EOF
+              echo "::set-output name=commit::${commit_id}"
             fi
             cat <<EOF >>/var/tmp/report.md
-
-          </details>
-
           ${r_explain}
           EOF
-            echo "::set-output name=has::true"
           fi
+          echo "::set-output name=has::true"
       - name: Hide previous results
         if: ${{ always() }}
         shell: bash
@@ -206,7 +146,7 @@ jobs:
           curl -H "Accept: application/vnd.github.v3+json" \
                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -o ${COMMENTS_JSON} ${COMMENTS_URL}
-          node_ids=( $(<${COMMENTS_JSON} jq '.[] | select(.body|test("^##\\s*[a-zA-Z_:]+\\s*repoman\\s*checks")) | select(.user.id == 41898282) | .node_id' | cut -d'"' -f2) )
+          node_ids=( $(<${COMMENTS_JSON} jq '.[] | select(.body|test("^##\\s*[a-zA-Z_:]+\\s*pkgcheck\\s*checks")) | select(.user.id == 41898282) | .node_id' | cut -d'"' -f2) )
           echo "${node_ids[@]}"
           json="{ \"query\": \"mutation {
               minimizeComment(input: {
