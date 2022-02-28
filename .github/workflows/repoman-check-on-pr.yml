@@ -119,6 +119,7 @@ jobs:
           echo "::set-output name=ret::${ret}"
           [[ ${ret} == 0 ]]
       - name: Format report
+        if: ${{ always() }}
         id: report
         shell: bash
         env:
