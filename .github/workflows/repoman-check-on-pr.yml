@@ -15,8 +15,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-        #container:
-        #image: ghcr.io/liangyongxiang/gentoo-testing:master
+    container:
+      image: ghcr.io/liangyongxiang/gentoo-testing:master
 
     steps:
       #- name: prepare tools
@@ -34,11 +34,18 @@ jobs:
       - name: test
         shell: bash
         run: |
+          echo ">> ls -a"
           ls -a
+          echo ">> pwd"
           pwd
+          echo ">> ws"
           ls -a ${{ github.workspace }}
+          echo ">> ls -a ~"
           ls -a ~
-          ls -a /
+          echo ">> ls -a /vat/db"
+          ls -a /var/db
+          echo ">> ls -a /vat/db/repos"
+          ls -a /var/db/repos
       - name: Get the base commit
         id: basecommit
         shell: bash
