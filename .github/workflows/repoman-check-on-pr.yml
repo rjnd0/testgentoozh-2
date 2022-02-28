@@ -19,6 +19,11 @@ jobs:
       image: ghcr.io/liangyongxiang/gentoo-testing:master
 
     steps:
+      - name: prepare tools
+        shell: bash
+        run: |
+          set -e
+          emerge -vj app-misc/jq
       - name: Checkout the head ref of the pull request
         uses: actions/checkout@v2
         with:
