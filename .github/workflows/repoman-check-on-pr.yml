@@ -19,11 +19,6 @@ jobs:
       image: ghcr.io/liangyongxiang/gentoo-testing:master
 
     steps:
-      - name: prepare tools
-        shell: bash
-        run: |
-          set -e
-          emerge -vj app-misc/jq
       - name: Checkout the head ref of the pull request
         uses: actions/checkout@v2
         with:
@@ -31,27 +26,6 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.sha }}
           path: gentoo-zh
-      - name: test
-        shell: bash
-        run: |
-          echo ">> ls -a"
-          ls -a
-          echo ">> pwd"
-          pwd
-          echo ">> ws"
-          ls -a ${{ github.workspace }} || true
-          echo ">> ls -a ~"
-          ls -a ~ || true
-          echo ">> ls -a /var/db"
-          ls -a /var/db || true
-          echo ">> ls -a /var/db/repos"
-          ls -a /var/db/repos || true
-          echo ">> cat /var/db/repos/gentoo/profiles/repo_name"
-          cat /var/db/repos/gentoo/profiles/repo_name || true
-          echo ">> emerge --info -v"
-          emerge --info -v || true
-          echo "env"
-          env
       - name: Get the base commit
         id: basecommit
         shell: bash
@@ -88,7 +62,7 @@ jobs:
           THEBASEREF: ${{ steps.basecommit.outputs.sha }}
         run: |
           set -e
-          mv ./gentoo-zh /var/db/repos/
+          mv ${{ GITHUB_WORKSPACE }}/gentoo-zh /var/db/repos/
           mkdir -p /etc/portage/repos.conf
           echo "[gentoo]
           location = /var/db/repos/gentoo
@@ -115,7 +89,10 @@ jobs:
           check_pkgs=( $(echo "${check_pkgs[@]}" | tr ' ' '\n' | sort -du | tr '\n' ' ') )
           ret=0
           echo "pkgs: ${check_pkgs[@]}"
-          pkgcheck scan --exit error ${check_pkgs[@]} >/var/tmp/report.txt || ret=$?
+          set -- pkgcheck scan --exit error "${check_pkgs[@]}"
+          echo ">>> " "${@}"
+          "${@}" >/var/tmp/report.txt || ret=$?
+          cat /var/tmp/report.txt || true
           echo "::set-output name=ret::${ret}"
           [[ ${ret} == 0 ]]
       - name: Format report
@@ -130,7 +107,8 @@ jobs:
           v_pkgcheck=$(pkgcheck --version) || true
           commit_gentoo=$(cd /var/db/repos/gentoo && git rev-list -n1 HEAD) || true
 
-          if [[ ! -e /var/tmp/report.txt ]]; then
+          r_len=$(wc -c /var/tmp/report.txt | awk -F'[[:space:]]' '{printf $1}')
+          if [[ ${r_len} == 0 ]]; then
             r_title=":heavy_check_mark: pkgcheck checks passed"
           else
             r_explain="[:mag: QA Keywords Explanation](https://pkgcore.github.io/pkgcheck/man/pkgcheck.html#keywords)"
@@ -145,13 +123,13 @@ jobs:
           ## ${r_title}
 
           ${v_pkgcheck}
-          _::gentoo_ repo latest commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
+          corresponding _**::gentoo**_ commit: https://github.com/gentoo-mirror/gentoo/commit/${commit_gentoo}
 
           EOF
 
           if [[ -n ${r_explain} ]]; then
             echo "**QA Results:**" >>/var/tmp/report.md
-            if [[ $(wc -c /var/tmp/report.txt | awk -F'[[:space:]]' '{printf $1}') -le 65000 ]]; then
+            if [[ ${r_len} -le 65000 ]]; then
               echo '```' >>/var/tmp/report.md
               cat /var/tmp/report.txt >>/var/tmp/report.md
               echo '```' >>/var/tmp/report.md
@@ -159,7 +137,7 @@ jobs:
               cd /var/db/repos/gentoo-zh || true
               commit_id=$(git rev-list -n1 HEAD | cut -b1-7)
               cat <<EOF >>/var/tmp/report.md
-          - _the report is too long, can be downloaded from **Artifacts** list of the current run:
+          * _the report is too long, can be downloaded from **Artifacts** list of the current run:
             https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
             filename: **pkgcheck-report-${commit_id}**_
           EOF
@@ -221,5 +199,5 @@ jobs:
         if: ${{ always() && steps.report.outputs.commit }}
         uses: actions/upload-artifact@v2
         with:
-          name: repoman-report-${{ steps.report.outputs.commit }}
+          name: pkgcheck-report-${{ steps.report.outputs.commit }}
           path: /var/tmp/report.txt
