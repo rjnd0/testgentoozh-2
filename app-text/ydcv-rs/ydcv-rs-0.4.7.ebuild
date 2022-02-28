@@ -227,7 +227,7 @@ ydcv-rs-0.4.7
 "
 inherit cargo
 
-DESCRIPTION="A rust version of YouDao Console Version"
+DESCRIPTION="A rust version of YouDao Console Version  ajsdkl"
 HOMEPAGE="https://github.com/farseerfc/ydcv-rs"
 SRC_URI="$(cargo_crate_uris ${CRATES})"
 
